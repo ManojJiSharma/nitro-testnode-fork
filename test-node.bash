@@ -14,14 +14,23 @@ if ! which docker-compose > /dev/null; then
     echo see https://docs.docker.com/compose/install/
     exit 1
 fi
+project_name=$3
+
+echo ::$1
+echo :2$2
+echo :3$3
+echo :4$4
+echo :5$5
+echo :6$6
+echo ====$7
 
 if [[ $# -gt 0 ]] && [[ $1 == "script" ]]; then
     shift
-    docker-compose run scripts "$@"
+    docker-compose --project-name="$project_name" run scripts "$@"
     exit $?
 fi
 
-num_volumes=`docker volume ls --filter label=com.docker.compose.project=nitro-testnode -q | wc -l`
+num_volumes=`docker volume ls --filter label=com.docker.compose.project=$project_name -q | wc -l`
 
 if [[ $num_volumes -eq 0 ]]; then
     force_init=true
@@ -43,152 +52,153 @@ dev_build_blockscout=false
 batchposters=1
 devprivkey=b6b15c8cb491557369f3c7d2c287b053eb229daa9c22138887752191c9520659
 l1chainid=1337
-while [[ $# -gt 0 ]]; do
-    case $1 in
-        --init)
-            if ! $force_init; then
-                echo == Warning! this will remove all previous data
-                read -p "are you sure? [y/n]" -n 1 response
-                if [[ $response == "y" ]] || [[ $response == "Y" ]]; then
-                    force_init=true
-                    echo
-                else
-                    exit 0
-                fi
-            fi
-            shift
-            ;;
-        --dev)
-            shift
-            if [[ $# -eq 0 || $1 == -* ]]; then
-                # If no argument after --dev, set both flags to true
-                dev_build_nitro=true
-                dev_build_blockscout=true
-            else
-                while [[ $# -gt 0 && $1 != -* ]]; do
-                    if [[ $1 == "nitro" ]]; then
-                        dev_build_nitro=true
-                    elif [[ $1 == "blockscout" ]]; then
-                        dev_build_blockscout=true
-                    fi
-                    shift
-                done
-            fi
-            ;;
-        --build)
-            force_build=true
-            shift
-            ;;
-        --validate)
-            validate=true
-            shift
-            ;;
-        --blockscout)
-            blockscout=true
-            shift
-            ;;
-        --no-tokenbridge)
-            tokenbridge=false
-            shift
-            ;;
-        --no-run)
-            run=false
-            shift
-            ;;
-        --detach)
-            detach=true
-            shift
-            ;;
-        --batchposters)
-            batchposters=$2
-            if ! [[ $batchposters =~ [0-3] ]] ; then
-                echo "batchposters must be between 0 and 3 value:$batchposters."
-                exit 1
-            fi
-            shift
-            shift
-            ;;
-        --pos)
-            consensusclient=true
-            l1chainid=32382
-            shift
-            ;;
-        --l3node)
-            l3node=true
-            shift
-            ;;
-        --redundantsequencers)
-            redundantsequencers=$2
-            if ! [[ $redundantsequencers =~ [0-3] ]] ; then
-                echo "redundantsequencers must be between 0 and 3 value:$redundantsequencers."
-                exit 1
-            fi
-            shift
-            shift
-            ;;
-        *)
-            echo Usage: $0 \[OPTIONS..]
-            echo        $0 script [SCRIPT-ARGS]
-            echo
-            echo OPTIONS:
-            echo --build:           rebuild docker images
-            echo --dev:             build nitro and blockscout dockers from source \(otherwise - pull docker\)
-            echo --init:            remove all data, rebuild, deploy new rollup
-            echo --pos:             l1 is a proof-of-stake chain \(using prysm for consensus\)
-            echo --validate:        heavy computation, validating all blocks in WASM
-            echo --batchposters:    batch posters [0-3]
-            echo --redundantsequencers redundant sequencers [0-3]
-            echo --detach:          detach from nodes after running them
-            echo --blockscout:      build or launch blockscout
-            echo --no-tokenbridge:  don\'t build or launch tokenbridge
-            echo --no-run:          does not launch nodes \(usefull with build or init\)
-            echo
-            echo script runs inside a separate docker. For SCRIPT-ARGS, run $0 script --help
-            exit 0
-    esac
-done
+ force_init=true
+# while [[ $# -gt 0 ]]; do
+#     case $1 in
+#         --init)
+#             if ! $force_init; then
+#                 echo == Warning! this will remove all previous data
+#                 read -p "are you sure? [y/n]" -n 1 response
+#                 if [[ $response == "y" ]] || [[ $response == "Y" ]]; then
+#                     force_init=true
+#                     echo
+#                 else
+#                     exit 0
+#                 fi
+#             fi
+#             shift
+#             ;;
+#         --dev)
+#             shift
+#             if [[ $# -eq 0 || $1 == -* ]]; then
+#                 # If no argument after --dev, set both flags to true
+#                 dev_build_nitro=true
+#                 dev_build_blockscout=true
+#             else
+#                 while [[ $# -gt 0 && $1 != -* ]]; do
+#                     if [[ $1 == "nitro" ]]; then
+#                         dev_build_nitro=true
+#                     elif [[ $1 == "blockscout" ]]; then
+#                         dev_build_blockscout=true
+#                     fi
+#                     shift
+#                 done
+#             fi
+#             ;;
+#         --build)
+#             force_build=true
+#             shift
+#             ;;
+#         --validate)
+#             validate=true
+#             shift
+#             ;;
+#         --blockscout)
+#             blockscout=true
+#             shift
+#             ;;
+#         --no-tokenbridge)
+#             tokenbridge=false
+#             shift
+#             ;;
+#         --no-run)
+#             run=false
+#             shift
+#             ;;
+#         --detach)
+#             detach=true
+#             shift
+#             ;;
+#         --batchposters)
+#             batchposters=$2
+#             if ! [[ $batchposters =~ [0-3] ]] ; then
+#                 echo "batchposters must be between 0 and 3 value:$batchposters."
+#                 exit 1
+#             fi
+#             shift
+#             shift
+#             ;;
+#         --pos)
+#             consensusclient=true
+#             l1chainid=32382
+#             shift
+#             ;;
+#         --l3node)
+#             l3node=true
+#             shift
+#             ;;
+#         --redundantsequencers)
+#             redundantsequencers=$2
+#             if ! [[ $redundantsequencers =~ [0-3] ]] ; then
+#                 echo "redundantsequencers must be between 0 and 3 value:$redundantsequencers."
+#                 exit 1
+#             fi
+#             shift
+#             shift
+#             ;;
+#         *)
+#             echo Usage: $0 \[OPTIONS..]
+#             echo        $0 script [SCRIPT-ARGS]
+#             echo
+#             echo OPTIONS:
+#             echo --build:           rebuild docker images
+#             echo --dev:             build nitro and blockscout dockers from source \(otherwise - pull docker\)
+#             echo --init:            remove all data, rebuild, deploy new rollup
+#             echo --pos:             l1 is a proof-of-stake chain \(using prysm for consensus\)
+#             echo --validate:        heavy computation, validating all blocks in WASM
+#             echo --batchposters:    batch posters [0-3]
+#             echo --redundantsequencers redundant sequencers [0-3]
+#             echo --detach:          detach from nodes after running them
+#             echo --blockscout:      build or launch blockscout
+#             echo --no-tokenbridge:  don\'t build or launch tokenbridge
+#             echo --no-run:          does not launch nodes \(usefull with build or init\)
+#             echo
+#             echo script runs inside a separate docker. For SCRIPT-ARGS, run $0 script --help
+#             # exit 0
+#     esac
+# done
 
 if $force_init; then
   force_build=true
 fi
 
-# # not using
-# if $dev_build_nitro; then
-#   if [[ "$(docker images -q nitro-node-dev:latest 2> /dev/null)" == "" ]]; then
-#     force_build=true
-#   fi
-# fi
+# not using
+if $dev_build_nitro; then
+  if [[ "$(docker images -q nitro-node-dev:latest 2> /dev/null)" == "" ]]; then
+    force_build=true
+  fi
+fi
 
-# if $dev_build_blockscout; then
-#   if [[ "$(docker images -q blockscout:latest 2> /dev/null)" == "" ]]; then
-#     force_build=true
-#   fi
-# fi
+if $dev_build_blockscout; then
+  if [[ "$(docker images -q blockscout:latest 2> /dev/null)" == "" ]]; then
+    force_build=true
+  fi
+fi
 
 
 NODES="sequencer"
 INITIAL_SEQ_NODES="sequencer"
 
-# if [ $redundantsequencers -gt 0 ]; then
-#     NODES="$NODES sequencer_b"
-#     INITIAL_SEQ_NODES="$INITIAL_SEQ_NODES sequencer_b"
-# fi
-# if [ $redundantsequencers -gt 1 ]; then
-#     NODES="$NODES sequencer_c"
-# fi
-# if [ $redundantsequencers -gt 2 ]; then
-#     NODES="$NODES sequencer_d"
-# fi
+if [ $redundantsequencers -gt 0 ]; then
+    NODES="$NODES sequencer_b"
+    INITIAL_SEQ_NODES="$INITIAL_SEQ_NODES sequencer_b"
+fi
+if [ $redundantsequencers -gt 1 ]; then
+    NODES="$NODES sequencer_c"
+fi
+if [ $redundantsequencers -gt 2 ]; then
+    NODES="$NODES sequencer_d"
+fi
 
 if [ $batchposters -gt 0 ]; then
     NODES="$NODES poster"
 fi
-# if [ $batchposters -gt 1 ]; then
-#     NODES="$NODES poster_b"
-# fi
-# if [ $batchposters -gt 2 ]; then
-#     NODES="$NODES poster_c"
-# fi
+if [ $batchposters -gt 1 ]; then
+    NODES="$NODES poster_b"
+fi
+if [ $batchposters -gt 2 ]; then
+    NODES="$NODES poster_c"
+fi
 
 
 if $validate; then
@@ -224,7 +234,7 @@ if $force_build; then
   if $tokenbridge; then
     LOCAL_BUILD_NODES="$LOCAL_BUILD_NODES tokenbridge"
   fi
-  docker-compose build --no-rm $LOCAL_BUILD_NODES
+  docker-compose --project-name="$project_name" build --no-rm $LOCAL_BUILD_NODES
 fi
 
 if $dev_build_nitro; then
@@ -246,122 +256,121 @@ else
 fi
 
 if $force_build; then
-    docker-compose build --no-rm $NODES scripts
+    docker-compose --project-name="$project_name" build --no-rm $NODES scripts
 fi
 
 if $force_init; then
     echo == Removing old data..
-    docker-compose down
-    leftoverContainers=`docker container ls -a --filter label=com.docker.compose.project=nitro-testnode -q | xargs echo`
+    docker-compose --project-name="$project_name" down
+    leftoverContainers=`docker container ls -a --filter label=com.docker.compose.project=$project_name -q | xargs echo`
     if [ `echo $leftoverContainers | wc -w` -gt 0 ]; then
         docker rm $leftoverContainers
     fi
-    docker volume prune -f --filter label=com.docker.compose.project=nitro-testnode
-    leftoverVolumes=`docker volume ls --filter label=com.docker.compose.project=nitro-testnode -q | xargs echo`
+    docker volume prune -f --filter label=com.docker.compose.project=$project_name
+    leftoverVolumes=`docker volume ls --filter label=com.docker.compose.project=$project_name -q | xargs echo`
     if [ `echo $leftoverVolumes | wc -w` -gt 0 ]; then
         docker volume rm $leftoverVolumes
     fi
 
     echo == Generating l1 keys
-    docker-compose run scripts write-accounts
-    docker-compose run --entrypoint sh geth -c "echo passphrase > /datadir/passphrase"
-    docker-compose run --entrypoint sh geth -c "chown -R 1000:1000 /keystore"
-    docker-compose run --entrypoint sh geth -c "chown -R 1000:1000 /config"
+    REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts write-accounts
+    docker-compose --project-name="$project_name" run --entrypoint sh geth -c "echo passphrase > /datadir/passphrase"
+    docker-compose --project-name="$project_name" run --entrypoint sh geth -c "chown -R 1000:1000 /keystore"
+    docker-compose --project-name="$project_name" run --entrypoint sh geth -c "chown -R 1000:1000 /config"
 
     if $consensusclient; then
       echo == Writing configs
-      docker-compose run scripts write-geth-genesis-config
+      REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts write-geth-genesis-config
 
       echo == Writing configs
-      docker-compose run scripts write-prysm-config
+      REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts write-prysm-config
 
       echo == Initializing go-ethereum genesis configuration
-      docker-compose run geth init --datadir /datadir/ /config/geth_genesis.json
+      docker-compose --project-name="$project_name" run geth init --datadir /datadir/ /config/geth_genesis.json
 
       echo == Starting geth
-      docker-compose up -d geth
+      GETH1_PORT=$4 GETH2_PORT=$5 GETH3_PORT=$6 GETH4_PORT=$7 docker-compose --project-name="$project_name"  up -d geth
 
       echo == Creating prysm genesis
-      docker-compose up create_beacon_chain_genesis
+      docker-compose --project-name="$project_name"  up create_beacon_chain_genesis
 
       echo == Running prysm
-      docker-compose up -d prysm_beacon_chain
-      docker-compose up -d prysm_validator
+      docker-compose --project-name="$project_name"  up -d prysm_beacon_chain
+      docker-compose --project-name="$project_name"  up -d prysm_validator
     else
-      docker-compose up -d geth
+      REDIS_PORT=$2 GETH1_PORT=$4 GETH2_PORT=$5 GETH3_PORT=$6 GETH4_PORT=$7 docker-compose --project-name="$project_name"  up -d geth
     fi
 
     echo == Funding validator and sequencer
-    docker-compose run scripts send-l1 --ethamount 1000 --to validator --wait
-    docker-compose run scripts send-l1 --ethamount 1000 --to sequencer --wait
+    REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts send-l1 --ethamount 1000 --to validator --wait
+    REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts send-l1 --ethamount 1000 --to sequencer --wait
 
     echo == create l1 traffic
-    docker-compose run scripts send-l1 --ethamount 1000 --to user_l1user --wait
-    docker-compose run scripts send-l1 --ethamount 0.0001 --from user_l1user --to user_l1user_b --wait --delay 500 --times 500 > /dev/null &
+    REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts send-l1 --ethamount 1000 --to user_l1user --wait
+    REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts send-l1 --ethamount 0.0001 --from user_l1user --to user_l1user_b --wait --delay 500 --times 500 > /dev/null &
 
     echo == Writing l2 chain config
-    docker-compose run scripts write-l2-chain-config
+    REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts write-l2-chain-config
 
     echo == Deploying L2
-    sequenceraddress=`docker-compose run scripts print-address --account sequencer | tail -n 1 | tr -d '\r\n'`
+    sequenceraddress=`REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts print-address --account sequencer | tail -n 1 | tr -d '\r\n'`
     echo :::: $sequencerAddress
 
-    docker-compose run --entrypoint /usr/local/bin/deploy poster --l1conn ws://geth:8546 --l1keystore /home/user/l1keystore --sequencerAddress $sequenceraddress --ownerAddress $sequenceraddress --l1DeployAccount $sequenceraddress --l1deployment /config/deployment.json --authorizevalidators 10 --wasmrootpath /home/user/target/machines --l1chainid=$l1chainid --l2chainconfig /config/l2_chain_config.json --l2chainname arb-dev-test --l2chaininfo /config/deployed_chain_info.json
-    docker-compose run --entrypoint sh poster -c "jq [.[]] /config/deployed_chain_info.json > /config/l2_chain_info.json"
+    REDIS_PORT=$2 GETH1_PORT=$4 GETH2_PORT=$5 GETH3_PORT=$6 GETH4_PORT=$7 docker-compose --project-name="$project_name" run --entrypoint /usr/local/bin/deploy poster --l1conn ws://geth:8546 --l1keystore /home/user/l1keystore --sequencerAddress $sequenceraddress --ownerAddress $sequenceraddress --l1DeployAccount $sequenceraddress --l1deployment /config/deployment.json --authorizevalidators 10 --wasmrootpath /home/user/target/machines --l1chainid=$l1chainid --l2chainconfig /config/l2_chain_config.json --l2chainname arb-dev-test --l2chaininfo /config/deployed_chain_info.json
+    REDIS_PORT=$2 GETH1_PORT=$4 GETH2_PORT=$5 GETH3_PORT=$6 GETH4_PORT=$7 docker-compose --project-name="$project_name" run --entrypoint sh poster -c "jq [.[]] /config/deployed_chain_info.json > /config/l2_chain_info.json"
     echo == Writing configs
-    docker-compose run scripts write-config
+    REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts write-config
 
     echo == Initializing redis
-    docker-compose run scripts redis-init --redundancy $redundantsequencers
+    REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts redis-init --redundancy $redundantsequencers
 
     echo == Funding l2 funnel
-    docker-compose up -d $INITIAL_SEQ_NODES
-    docker-compose run scripts bridge-funds --ethamount 100000 --wait
+    REDIS_PORT=$2 GETH1_PORT=$4 GETH2_PORT=$5 GETH3_PORT=$6 GETH4_PORT=$7 POSTER1_PORT=$8 POSTER2_PORT=$9 sequencer1_PORT=${10} sequencer2_PORT=${11} sequencer3_PORT=${12} docker-compose --project-name="$project_name"  up -d $INITIAL_SEQ_NODES
+    REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts bridge-funds --ethamount 100000 --wait
 
     if $tokenbridge; then
         echo == Deploying token bridge
-        docker-compose run -e ARB_KEY=$devprivkey -e ETH_KEY=$devprivkey tokenbridge gen:network
-        docker-compose run --entrypoint sh tokenbridge -c "cat localNetwork.json"
+        REDIS_PORT=$2  GETH1_PORT=$4 GETH2_PORT=$5 GETH3_PORT=$6 GETH4_PORT=$7  sequencer1_PORT=${10} sequencer2_PORT=${11} sequencer3_PORT=${12} docker-compose --project-name="$project_name" run -e ARB_KEY=$devprivkey -e ETH_KEY=$devprivkey tokenbridge gen:network
+        REDIS_PORT=$2  GETH1_PORT=$4 GETH2_PORT=$5 GETH3_PORT=$6 GETH4_PORT=$7  sequencer1_PORT=${10} sequencer2_PORT=${11} sequencer3_PORT=${12} docker-compose --project-name="$project_name" run --entrypoint sh tokenbridge -c "cat localNetwork.json"
         echo
     fi
 
     if $l3node; then
         echo == Funding l3 users
-        docker-compose run scripts send-l2 --ethamount 1000 --to l3owner --wait
-        docker-compose run scripts send-l2 --ethamount 1000 --to l3sequencer --wait
+        docker-compose --project-name="$project_name" run scripts send-l2 --ethamount 1000 --to l3owner --wait
+        docker-compose --project-name="$project_name" run scripts send-l2 --ethamount 1000 --to l3sequencer --wait
 
 
         echo == create l2 traffic
-        docker-compose run scripts send-l2 --ethamount 100 --to user_l2user --wait
-        docker-compose run scripts send-l2 --ethamount 0.0001 --from user_l2user --to user_l2user_b --wait --delay 500 --times 500 > /dev/null &
+        docker-compose --project-name="$project_name" run scripts send-l2 --ethamount 100 --to user_l2user --wait
+        docker-compose --project-name="$project_name" run scripts send-l2 --ethamount 0.0001 --from user_l2user --to user_l2user_b --wait --delay 500 --times 500 > /dev/null &
 
         echo == Writing l3 chain config
-        docker-compose run scripts write-l3-chain-config
+        docker-compose --project-name="$project_name" run scripts write-l3-chain-config
 
         echo == Deploying L3
-        l3owneraddress=`docker-compose run scripts print-address --account l3owner | tail -n 1 | tr -d '\r\n'`
+        l3owneraddress=`docker-compose --project-name="$project_name" run scripts print-address --account l3owner | tail -n 1 | tr -d '\r\n'`
 
-        l3sequenceraddress=`docker-compose run scripts print-address --account l3sequencer | tail -n 1 | tr -d '\r\n'`
+        l3sequenceraddress=`docker-compose --project-name="$project_name" run scripts print-address --account l3sequencer | tail -n 1 | tr -d '\r\n'`
 
-        docker-compose run --entrypoint /usr/local/bin/deploy poster --l1conn ws://sequencer:8548 --l1keystore /home/user/l1keystore --sequencerAddress $l3sequenceraddress --ownerAddress $l3owneraddress --l1DeployAccount $l3owneraddress --l1deployment /config/l3deployment.json --authorizevalidators 10 --wasmrootpath /home/user/target/machines --l1chainid=412346 --l2chainconfig /config/l3_chain_config.json --l2chainname orbit-dev-test --l2chaininfo /config/deployed_l3_chain_info.json
-        docker-compose run --entrypoint sh poster -c "jq [.[]] /config/deployed_l3_chain_info.json > /config/l3_chain_info.json"
+        docker-compose --project-name="$project_name" run --entrypoint /usr/local/bin/deploy poster --l1conn ws://sequencer:8548 --l1keystore /home/user/l1keystore --sequencerAddress $l3sequenceraddress --ownerAddress $l3owneraddress --l1DeployAccount $l3owneraddress --l1deployment /config/l3deployment.json --authorizevalidators 10 --wasmrootpath /home/user/target/machines --l1chainid=412346 --l2chainconfig /config/l3_chain_config.json --l2chainname orbit-dev-test --l2chaininfo /config/deployed_l3_chain_info.json
+        docker-compose --project-name="$project_name" run --entrypoint sh poster -c "jq [.[]] /config/deployed_l3_chain_info.json > /config/l3_chain_info.json"
 
         echo == Funding l3 funnel
-        docker-compose up -d l3node poster
-        docker-compose run scripts bridge-to-l3 --ethamount 50000 --wait
+        docker-compose --project-name="$project_name"  up -d l3node poster
+        docker-compose --project-name="$project_name" run scripts bridge-to-l3 --ethamount 50000 --wait
 
     fi
 fi
 
 if $run; then
-    UP_FLAG=""
-    if $detach; then
+    # UP_FLAG=""
+    # if $detach; then
         UP_FLAG="-d"
-    fi
+    # fi
 
     echo == Launching Sequencer
     echo if things go wrong - use --init to create a new chain
     echo
-    echo "::docker-compose up  $UP_FLAG $NODES"
-    docker-compose up  $UP_FLAG $NODES
+    VALIDATION_NODE_PORT=${15} REDIS_PORT=$2 GETH1_PORT=$4 GETH2_PORT=$5 GETH3_PORT=$6 GETH4_PORT=$7 POSTER1_PORT=$8 POSTER2_PORT=$9 sequencer1_PORT=${10} sequencer2_PORT=${11} sequencer3_PORT=${12} STAKER_UNSAFE1_PORT=${13} STAKER_UNSAFE2_PORT=${14} docker-compose --project-name="$project_name"  up  $UP_FLAG $NODES
 fi
