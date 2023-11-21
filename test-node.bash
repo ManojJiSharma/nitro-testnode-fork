@@ -280,10 +280,10 @@ if $force_init; then
 
     if $consensusclient; then
       echo == Writing configs
-      REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts write-geth-genesis-config
+      docker-compose --project-name="$project_name" run scripts write-geth-genesis-config
 
       echo == Writing configs
-      REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts write-prysm-config
+      docker-compose --project-name="$project_name" run scripts write-prysm-config
 
       echo == Initializing go-ethereum genesis configuration
       docker-compose --project-name="$project_name" run geth init --datadir /datadir/ /config/geth_genesis.json
@@ -298,7 +298,7 @@ if $force_init; then
       docker-compose --project-name="$project_name"  up -d prysm_beacon_chain
       docker-compose --project-name="$project_name"  up -d prysm_validator
     else
-      REDIS_PORT=$2 GETH1_PORT=$4 GETH2_PORT=$5 GETH3_PORT=$6 GETH4_PORT=$7 docker-compose --project-name="$project_name"  up -d geth
+      GETH1_PORT=$4 GETH2_PORT=$5 GETH3_PORT=$6 GETH4_PORT=$7 docker-compose --project-name="$project_name"  up -d geth
     fi
 
     echo == Funding validator and sequencer
@@ -319,7 +319,7 @@ if $force_init; then
     REDIS_PORT=$2 GETH1_PORT=$4 GETH2_PORT=$5 GETH3_PORT=$6 GETH4_PORT=$7 docker-compose --project-name="$project_name" run --entrypoint /usr/local/bin/deploy poster --l1conn ws://geth:8546 --l1keystore /home/user/l1keystore --sequencerAddress $sequenceraddress --ownerAddress $sequenceraddress --l1DeployAccount $sequenceraddress --l1deployment /config/deployment.json --authorizevalidators 10 --wasmrootpath /home/user/target/machines --l1chainid=$l1chainid --l2chainconfig /config/l2_chain_config.json --l2chainname arb-dev-test --l2chaininfo /config/deployed_chain_info.json
     REDIS_PORT=$2 GETH1_PORT=$4 GETH2_PORT=$5 GETH3_PORT=$6 GETH4_PORT=$7 docker-compose --project-name="$project_name" run --entrypoint sh poster -c "jq [.[]] /config/deployed_chain_info.json > /config/l2_chain_info.json"
     echo == Writing configs
-    REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts write-config
+    REDIS_PORT=$2 GETH1_PORT=$4 GETH2_PORT=$5 GETH3_PORT=$6 GETH4_PORT=$7 docker-compose --project-name="$project_name" run scripts write-config
 
     echo == Initializing redis
     REDIS_PORT=$2 docker-compose --project-name="$project_name" run scripts redis-init --redundancy $redundantsequencers
