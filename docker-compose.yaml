@@ -315,6 +315,8 @@ services:
       - "config:/config"
     depends_on:
       - redis
+    env_file:
+      - ./scripts/.env
 
   relay:
     pid: host

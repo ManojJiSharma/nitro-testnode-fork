@@ -226,7 +226,7 @@ export const sendRPCCommand = {
     describe: "sends rpc command",
     builder: {
         method: { string: true, describe: "rpc method to call", default: "eth_syncing" },
-        url: { string: true, describe: "url to send rpc call", default: "http://sequencer:8547"},
+        url: { string: true, describe: "url to send rpc call", default: process.env.SEQUENCER1_URL},//process.env.SEQUENCER1_URL
         params: { array : true, describe: "array of parameter name/values" },
     },
     handler: async (argv: any) => {
