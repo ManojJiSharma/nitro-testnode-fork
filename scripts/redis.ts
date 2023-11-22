@@ -38,9 +38,10 @@ async function writeRedisPriorities(redisUrl: string, priorities: number) {
   const redis = createClient({ url: redisUrl });
 
   let prio_sequencers = "bcd";
-  let priostring = "";
+  let priostring:string = "";
   if (priorities == 0) {
-    priostring = "ws://sequencer:8548";
+    console.log("process.env.SEQUENCER2_URL:: ",process.env.SEQUENCER_L2URL_PORT);
+    priostring = process.env.SEQUENCER_L2URL_PORT || "ws://sequencer:8548";
   }
   if (priorities > prio_sequencers.length) {
     priorities = prio_sequencers.length;

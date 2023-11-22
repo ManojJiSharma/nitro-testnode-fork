@@ -16,15 +16,14 @@ import {
   sendL3Command,
   sendRPCCommand,
 } from "./ethcommands";
-
 async function main() {
   await Yargs(hideBin(process.argv))
     .options({
-      redisUrl: { string: true, default: "redis://redis:6379" },
-      l1url: { string: true, default: "ws://geth:8546" },
-      l2url: { string: true, default: "ws://sequencer:8548" },
+      redisUrl: { string: true, default: process.env.REDIS_URL },
+      l1url: { string: true, default: process.env.l1_URL },
+      l2url: { string: true, default: process.env.SEQUENCER_L2URL_PORT },
       l3url: { string: true, default: "ws://l3node:3348" },
-      validationNodeUrl: { string: true, default: "ws://validation_node:8549" },
+      validationNodeUrl: { string: true, default: "ws://validation_node:8549" }, //process.env.VALIDATION_NODE_URL
       l2owner: { string: true, default: "0x3f1Eae7D46d88F08fc2F8ed27FCb2AB183EB2d0E" },
     })
     .options(stressOptions)
